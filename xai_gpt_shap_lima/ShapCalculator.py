@@ -8,7 +8,7 @@ import os
 
 class ShapCalculator:
     def __init__(self):
-        self.data_path= os.path.join(os.path.dirname(__file__), "data", "shap_positive.csv")
+        self.data_path= os.path.join(os.path.dirname(__file__), "data", "10_instance.csv")
         self.model = None
         self.x_data = None
         self.shap_values = None
@@ -19,7 +19,7 @@ class ShapCalculator:
     def test_get_shap_values(self): 
         shap_positives = pd.read_csv(self.data_path)
         return shap_positives
-
+    
 
     def calculate_shap_values(self):
         X, y = shap.datasets.adult()

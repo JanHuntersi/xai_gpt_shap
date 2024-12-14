@@ -24,6 +24,7 @@ requests = ">=2.32.2"
 rich = ">=13.7.0"
 urllib3 = ">=2.2.2"
 prompt-toolkit = ">=3.0.43"
+tiktoken = "^0.8.0"
 
 
 [build-system]
