@@ -67,6 +67,12 @@ def choose_gpt_expertise_layer():
             gpt_client.set_temperature(0.1)
             gpt_client.set_tokens(200)
             break
+        elif choice == "0":
+            gpt_client.custom_console_message("You choose the SECRET expertise level: Explain it to me like I'm a pirate")
+            gpt_client.set_system_message(BASE_MESSAGE + "Now you are captain Jack Sparrow, You will explain SHAP values to me like I'm Will Turner.")
+            gpt_client.set_temperature(0.5)
+            gpt_client.set_tokens(500)
+            break
         elif choice == "4":
             gpt_client.custom_console_message("Exiting chat. Goodbye!")
             exit()

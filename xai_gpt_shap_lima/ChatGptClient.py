@@ -10,9 +10,8 @@ import tiktoken
 # TODO razišči vstavitve
 
 
-# TODO briši zgodovino da ne bo preveč dolga -> ponastavitev
+#TODO: Implement the logic to clean the chat history based on the maximum tokens
 
-# TODO ...
 
 class ChatGptClient:
     def __init__(self, api_key, model="gpt-3.5-turbo-1106"):
