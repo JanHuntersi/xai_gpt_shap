@@ -7,12 +7,6 @@ from prompt_toolkit import PromptSession
 import tiktoken
 
 
-# TODO razišči vstavitve
-
-
-#TODO: Implement the logic to clean the chat history based on the maximum tokens
-
-
 class ChatGptClient:
     def __init__(self, api_key, model="gpt-3.5-turbo-1106"):
         self.client = OpenAI(api_key=api_key)
@@ -32,11 +26,50 @@ class ChatGptClient:
         encoding = tiktoken.encoding_for_model(self.model)
         return len(encoding.encode(message['content']))
         
-    def clean_chat_history(self, max_tokens):
+    def clean_chat_history(self, history_tokens=0):
         """
         Clean the chat history based on the maximum tokens
         """
-        #TODO: Implement the logic to clean the chat history based on the maximum tokens
+
+        if history_tokens == 0:
+            history_tokens = self.history_tokens
+
+        total_tokens = sum([self.count_tokens(message) for message in self.chat_history])
+        
+        if len(self.chat_history) <4:
+            self.custom_console_message("Chat history is too short to clean", color="red")
+            return
+        
+        if total_tokens < history_tokens:
+            return
+        
+        self.custom_console_message(f"Number of tokens: {total_tokens}. Cleaning the chat history based on the maximum tokens...", "red")
+
+
+        first_three_messages = self.chat_history[:3] #system, initial prompt, chat response
+        middle_messages = self.chat_history[3:-2]
+        last_messages = self.chat_history[-2:]
+
+        # Critical tokens = first_three_messages + last_messages
+        critical_tokens = sum([self.count_tokens(message) for message in first_three_messages])
+        critical_tokens += sum([self.count_tokens(message) for message in last_messages])
+
+
+        if critical_tokens > history_tokens:
+            self.custom_console_message(
+                "Critical tokens exceed the maximum number of allowed tokens!",
+                color="red"
+            )
+            raise ValueError("Critical tokens exceed the maximum number of allowed tokens!")
+        
+        
+        while total_tokens > history_tokens and middle_messages:
+            middle_messages.pop(0)
+            total_tokens = (critical_tokens + sum([self.count_tokens(message) for message in middle_messages])) 
+            
+        self.chat_history = first_three_messages + middle_messages + last_messages
+
+
 
     def set_temperature(self, temperature):
         """
@@ -87,13 +120,14 @@ class ChatGptClient:
 
         self.custom_console_message("Sending the initial SHAP results to the model...", "green")
         self.chat_history.append({"role": "user", "content": prompt})
+        
         response = self.client.chat.completions.create(
             model=self.model,
             messages=self.chat_history,
             temperature=temperature,
             max_tokens=max_tokens,
-
         )
+
         answer = response.choices[0].message.content
 
         self.chat_history.append({"role": "assistant", "content": answer})
@@ -117,14 +151,17 @@ class ChatGptClient:
         self.console.print("[bold cyan]You can now interact with ChatGPT. Type your questions below![/bold cyan]")
         while True:
             try:
+                #Get user input
                 user_message = self.get_user_input()
-
                 if not isinstance(user_message, str):
                     user_message = str(user_message)
-
                 self.chat_history.append({"role": "user", "content": user_message})
 
+                #Send input and stream the response
                 self.stream_response()
+
+                #Clean the chat history
+                self.clean_chat_history()
 
             except (KeyboardInterrupt, EOFError):
                 self.exit_chat()
