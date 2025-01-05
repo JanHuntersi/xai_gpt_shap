@@ -5,7 +5,7 @@ from rich.live import Live
 from rich.markdown import Markdown
 from prompt_toolkit import PromptSession
 import tiktoken
-
+from xai_gpt_shap_lima.roles import get_role_message
 
 class ChatGptClient:
     def __init__(self, api_key, model="gpt-3.5-turbo-1106"):
@@ -105,7 +105,7 @@ class ChatGptClient:
         self.system_message = {"role": "system", "content": message}
         self.chat_history.insert(0, self.system_message)
 
-    def send_initial_prompt(self, prompt, max_tokens=0, temperature=0):
+    def send_initial_prompt(self, prompt, print_response=True, max_tokens=0, temperature=0):
         """
         Sends the initial prompt to the model
         """
@@ -129,13 +129,14 @@ class ChatGptClient:
         )
 
         answer = response.choices[0].message.content
-
         self.chat_history.append({"role": "assistant", "content": answer})
-        self.console.print(
-            Panel(
-                Markdown(answer), title="Assistant Response", border_style="blue"
+
+        if print_response == True:
+            self.console.print(
+                Panel(
+                    Markdown(answer), title="Assistant Response", border_style="blue"
+                )
             )
-        )
         return answer
 
     def custom_console_message(self, message, color="white"):
@@ -200,6 +201,159 @@ class ChatGptClient:
 
         self.chat_history.append({"role": "assistant", "content": text})
         return text
+    
+    def create_summary_and_message(self,shap_df, model, short_summary, choice_class, role):
+
+        summary = "\n".join(
+            [
+                f"- {row['Feature']}: SHAP={row['SHAP Value']:.4f}, Value={row['Feature Value']}"
+                for _, row in shap_df.iterrows()
+            ]
+        )
+        
+        top_positive = shap_df.nlargest(3, "SHAP Value")
+        top_negative = shap_df.nsmallest(3, "SHAP Value")
+        
+        top_positive_summary = "\n".join(
+            [
+                f"- {row['Feature']}: SHAP={row['SHAP Value']:.4f}, Value={row['Feature Value']}"
+                for _, row in top_positive.iterrows()
+            ]
+        )
+        
+        top_negative_summary = "\n".join(
+            [
+                f"- {row['Feature']}: SHAP={row['SHAP Value']:.4f}, Value={row['Feature Value']}"
+                for _, row in top_negative.iterrows()
+            ]
+        )
+
+        # Prompt bassed on role
+        if role == "beginner":
+            message = f"""
+            Imagine you are explaining SHAP values to a beginner. 
+            The model predicts: {short_summary}. 
+            Focus only on the most important features and their effects. Avoid using numbers.
+
+            Key Insights:
+            The most important positive feature is {top_positive.iloc[0]['Feature']}.
+            The most important negative feature is {top_negative.iloc[0]['Feature']}.
+
+            Full SHAP Results:
+            {summary}
+
+
+            Explain this prediction in simple terms.
+            """
+        elif role == "executive_summary":
+            message = f"""
+            Provide a concise summary of the SHAP values for the prediction: {short_summary}.
+            Focus on the most important features and their contributions without technical details.
+
+            Key Insights:
+            Positive: {top_positive.iloc[0]['Feature']} (positive impact).
+            Negative: {top_negative.iloc[0]['Feature']} (negative impact).
+
+            Full SHAP Results:
+            {summary}
+
+            """
+        else:  # Default for other roles
+            message = f"""
+            I have an explanation based on SHAP values for a single instance. 
+            The model used is {model}, and it predicts: {short_summary}. 
+            Below are the SHAP values for the chosen instance from the {choice_class} class:
+
+            Full SHAP Results:
+            {summary}
+
+            Key Insights:
+            The top 3 features positively influencing the prediction are:
+            {top_positive_summary}
+
+            The top 3 features negatively influencing the prediction are:
+            {top_negative_summary}
+
+            Please analyze the SHAP results and explain:
+            1. How these features contribute to the prediction.
+            2. Why the prediction was made for this specific instance.
+            3. Any potential insights or counterintuitive results.
+
+            Use clear and concise language based on the expertise level selected earlier.
+            """
+        
+        return message
+
+    def choose_gpt_expertise_layer_interactive(self):
+
+        roles_config = {
+                "1": {"role": "beginner", "temperature": 1, "tokens": 300, "message": "Explain it to me like I'm a beginner"},
+                "2": {"role": "student", "temperature": 0.8, "tokens": 200, "message": "Explain it to me like I'm a student"},
+                "3": {"role": "analyst", "temperature": 0.8, "tokens": 150, "message": "Explain it to me like I'm an analyst"},
+                "4": {"role": "researcher", "temperature": 0.8, "tokens": 150, "message": "Explain it to me like I'm a researcher"},
+                "5": {"role": "executive_summary", "temperature": 0.8, "tokens": 150, "message": "Explain it to me like an executive summary"},
+                "0": {"role": "pirate", "temperature": 0.8, "tokens": 200, "message": "Explain it to me like I'm a pirate"},
+            }
+
+        while True:
+
+            self.custom_console_message("Please choose the ChatGPT expertise level you want to interact with:")
+            self.custom_console_message("1. Beginner (Explain it to me like I'm a beginner)")
+            self.custom_console_message("2. Student (Explain it to me like I'm a student)")
+            self.custom_console_message("3. Analyst (Explain it to me like I'm an analyst)")
+            self.custom_console_message("4. Researcher (Explain it to me like I'm a researcher)")
+            self.custom_console_message("5. Executive Summary (Explain it to me like an executive summary)")
+            self.custom_console_message("6. Exit")
+            
+            
+            choice = self.get_user_input()
+
+            if choice in roles_config:
+                
+                config = roles_config[choice]
+                role = config["role"]
+                self.set_temperature(config["temperature"])
+                self.set_tokens(config["tokens"])
+                self.custom_console_message(f"You chose the expertise level: {config['message']}", "yellow")
+                
+                # Set system msg
+                try:
+                    system_message = get_role_message(role)
+                    self.set_system_message(system_message)
+                    return role  
+                except ValueError as e:
+                    self.custom_console_message(f"[red]{e}[/red]")
+            elif choice == "6":
+                self.custom_console_message("Exiting chat. Goodbye!", "red")
+                exit()
+            else:
+                self.custom_console_message("Invalid choice. Please try again.", "red")
+
+    def set_gpt_expertise_layer(self, role=None):
+        """
+        Nastavi sistemsko sporočilo GPT na podlagi izbrane vloge.
+
+        Args:
+            role (str): Izbrana vloga (npr. "beginner", "student", "analyst").
+                        Če ni podana, se interaktivno vpraša uporabnika.
+
+        Returns:
+            str: Izbrano vlogo (npr. "beginner", "student").
+        """
+        if role:
+            # if role available we set it
+            try:
+                system_message = get_role_message(role)
+                self.set_system_message(system_message)
+                self.custom_console_message(f"Selected role: {role.capitalize()}", "green")
+                return role
+            except ValueError as e:
+                self.custom_console_message(f"[red]{e}[/red]")
+                raise e
+        else:
+            # if role not set use interacitve way
+            return self.choose_gpt_expertise_layer_interactive()
+        
 
 
 

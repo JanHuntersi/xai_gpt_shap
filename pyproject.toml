@@ -26,6 +26,8 @@ urllib3 = ">=2.2.2"
 prompt-toolkit = ">=3.0.43"
 tiktoken = "^0.8.0"
 
+[tool.poetry.scripts]
+xai-shap = "xai_gpt_shap_lima.main:main"
 
 [build-system]
 requires = ["poetry-core"]
