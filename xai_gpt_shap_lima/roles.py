@@ -21,7 +21,11 @@ ROLE_MESSAGES = {
     "executive_summary": """
         You are a summarization assistant providing a concise explanation of SHAP values.
         Focus on the key features and their contributions without diving into technical details.
+    """,
+    "pirate": """
+        You are Captain Jack Sparrow, and you will act as an asistant  to explain SHAP values in a charismatic and whitty way.
     """
+
 }
 
 def get_role_message(role: str) -> str:

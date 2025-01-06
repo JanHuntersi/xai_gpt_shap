@@ -1,44 +1,73 @@
- # xai-gpt-shap-lima
+# **xai-gpt-shap-lima**
 
-**xai-gpt-shap-lima** is a Python library that combines SHAP (SHapley Additive exPlanations) value analysis with OpenAI GPT-based explanations to make machine learning model predictions more interpretable.
+**xai-gpt-shap-lima** is a Python library that combines **SHAP** (SHapley Additive exPlanations) value analysis with **OpenAI GPT**-based explanations to make machine learning model predictions more interpretable.
 
 This library allows you to:
 - Perform SHAP analysis on machine learning models.
 - Generate role-specific explanations for SHAP results using OpenAI GPT (e.g., for beginners, analysts, or researchers).
 - Interactively explore and understand SHAP results via a command-line interface (CLI).
 
-## Features
+---
+
+## **Key Features**
 
 - **SHAP Integration**: Calculate SHAP values for any machine learning model and dataset.
-- **OpenAI GPT Integration**: Automatically explain SHAP results using OpenAI GPT with role-specific messages (beginner, analyst, executive, etc.).
+- **OpenAI GPT Integration**: Automatically explain SHAP results using OpenAI GPT with role-specific messages (e.g., beginner, analyst, executive summary).
 - **Interactive Chat**: Engage in an interactive conversation with GPT to further explore results.
 - **CLI Support**: Easily run SHAP analysis and explanations directly from the command line.
 
 ---
 
-## Installation
+## **Installation**
 
-### Using Poetry
-If you use [Poetry](https://python-poetry.org/):
-```bash
-poetry add xai-gpt-shap-lima
-```
+### Option 1: Clone Repository (with Poetry)
+This project is currently available as a Poetry project and not a published package. To use it:
 
-### Using pip
-Install the package using pip:
-```bash
-pip install xai-gpt-shap-lima
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/JanHuntersi/xai-gpt-shap-lima.git
+   cd xai-gpt-shap-lima
+   ```
+
+2. Install dependencies using Poetry:
+   ```bash
+   poetry install
+   ```
+
+   To include development dependencies (e.g., **XGBoost** is needed if you load model from data folder):
+   ```bash
+   poetry install --with dev
+   ```
+
+3. Run the CLI or use the library programmatically as described below.
 
 ---
 
-## Usage
+### Option 2: Use Requirements File (pip)
+If you prefer, you can use a `requirements.txt` file to install the dependencies:
 
-### 1. **Command-Line Interface (CLI)**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/JanHuntersi/xai-gpt-shap-lima.git
+   cd xai-gpt-shap-lima
+   ```
+
+2. Install dependencies using `pip`:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Run the CLI or use the library programmatically as described below.
+
+---
+
+## **Usage**
+
+### **1. Command-Line Interface (CLI)**
 
 After installing the package, you can run it directly from the terminal using the `xai-shap` command.
 
-#### Example:
+#### **Example:**
 ```bash
 xai-shap --api_key YOUR_API_KEY \
          --model_path model.pkl \
@@ -48,22 +77,41 @@ xai-shap --api_key YOUR_API_KEY \
          --role beginner
 ```
 
-#### Options:
+#### **Options:**
 - `--api_key`: Your OpenAI API key.
-- `--model_path`: Path to the saved machine learning model (e.g., `model.pkl`).
+- `--model_path`: Path to the saved machine learning model (e.g., `model.pkl` or `model.onnx`).
 - `--data_path`: Path to the dataset used for SHAP analysis (e.g., `data.csv`).
 - `--instance_path`: Path to a CSV file containing the instance to analyze (e.g., `instance.csv`).
 - `--target_class`: The target class for SHAP analysis (e.g., `1` for binary classification).
 - `--role`: Role for the GPT explanation (`beginner`, `student`, `analyst`, `researcher`, `executive_summary`).
 - `--interactive`: Enable interactive chat mode after the initial explanation.
 
+#### **Example with Test Data:**
+This library includes a `data` folder with prepared test datasets. To run an example:
+1. Install the library with additional dependencies (for **XGBoost** support):
+   ```bash
+   poetry install --with dev
+   ```
+
+2. Run the project with the provided test data:
+   ```bash
+   poetry run python main.py \
+       --model_path ./data/input/shap_model.pkl \
+       --data_path ./data/input/x_data.csv \
+       --instance_path ./data/input/selected_instance.csv \
+       --target_class 1 \
+       --output_csv ./data/output/output_csv.csv \
+       --role beginner \
+       --api_key YOUR_API_KEY
+   ```
+
 ---
 
-### 2. **Programmatic Usage**
+### **2. Programmatic Usage**
 
 You can also use the library programmatically in Python scripts.
 
-#### Example Code:
+#### **Example Code:**
 ```python
 from xai_gpt_shap_lima import ChatGptClient, ShapCalculator
 
@@ -98,7 +146,7 @@ gpt_client.interactive_chat()
 
 ---
 
-## File Structure
+## **File Structure**
 
 ```
 xai_gpt_shap_lima/
@@ -115,69 +163,37 @@ xai_gpt_shap_lima/
 │
 ├── README.md                # Documentation
 ├── pyproject.toml           # Poetry configuration
+├── requirements.txt         # Alternative dependency file
 └── LICENSE                  # License information
 ```
 
 ---
 
-## Available Methods
+## **Supported Model Formats**
 
-Here’s a detailed breakdown of key methods in the library:
+This library supports the following model formats:
+1. **ONNX** (recommended): Platform-independent and standardized format.
+2. **Pickle**: Python models saved with `pickle` (e.g., Scikit-learn, XGBoost).
+
+**Note:** When using Pickle models, the user must ensure that the required libraries (e.g., `scikit-learn`, `xgboost`) are installed.
+
+---
+
+## **Key Methods**
+
+Here’s a breakdown of key methods in the library:
 
 | **Class**         | **Method**                              | **Description**                                                                                     | **Parameters**                                                                               | **Returns**                                                                                 |
 |-------------------|------------------------------------------|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
 | `ChatGptClient`   | `send_initial_prompt(prompt)`           | Sends an initial prompt to OpenAI GPT and returns the assistant’s response.                         | `prompt` (str): The prompt to send to GPT.                                                 | `str`: The assistant’s response.                                                          |
 |                   | `interactive_chat()`                   | Starts an interactive session with GPT for follow-up questions.                                    | None                                                                                       | None                                                                                       |
 |                   | `create_summary_and_message(...)`      | Generates a GPT prompt from SHAP results, model details, and role-specific requirements.            | `shap_df` (DataFrame): SHAP values, `model` (str): Model name, `short_summary` (str): Summary, `choice_class` (str): Class name, `role` (str): Role. | `str`: Generated GPT prompt.                                                              |
-|                   | `set_gpt_expertise_layer(role)`        | Configures GPT’s system message and settings based on the selected role.                           | `role` (str): The role to set (e.g., beginner, analyst).                                   | `str`: The configured role.                                                               |
 |                   | `set_system_message(message)`          | Sets the system-level message to configure GPT’s behavior.                                          | `message` (str): System-level message.                                                    | None                                                                                       |
 |                   | `stream_response()`                    | Streams GPT’s response in real time to the console.                                                | None                                                                                       | `str`: The full streamed response.                                                        |
-|                   | `clean_chat_history(history_tokens=0)` | Cleans chat history to keep the token count within limits for smoother interactions.               | `history_tokens` (int, optional): Maximum tokens allowed in history.                      | None                                                                                       |
+|                   | `clean_chat_history(max_history_tokens)`| Cleans the chat history to reduce token count in case of large conversation contexts.               | `max_history_tokens` (int): Maximum tokens allowed in history.                            | None                                                                                       |
 | `ShapCalculator`  | `load_model(model_path)`               | Loads a machine learning model from a file.                                                        | `model_path` (str): Path to the model file.                                               | None                                                                                       |
 |                   | `load_data(data_path)`                 | Loads a dataset from a CSV file.                                                                   | `data_path` (str): Path to the dataset file.                                              | None                                                                                       |
 |                   | `set_target_class(target_class)`       | Sets the target class for SHAP analysis (for multi-class problems).                                | `target_class` (int): The class index to analyze.                                         | None                                                                                       |
 |                   | `calculate_shap_values_for_instance(instance)` | Calculates SHAP values for a given instance and returns a DataFrame with feature-level explanations. | `instance` (DataFrame): The instance for SHAP analysis.                                   | `DataFrame`: SHAP values with feature importance.                                         |
 |                   | `save_shap_values_to_csv(output_path)` | Saves the SHAP values to a CSV file.                                                               | `output_path` (str): Path to save the CSV file.                                           | None                                                                                       |
-| `roles`           | `get_role_message(role)`               | Retrieves a predefined system message based on the user’s expertise level or role.                 | `role` (str): The role to retrieve the message for (e.g., beginner, analyst).             | `str`: Predefined system message.                                                         |
-
-
-
----
-
-## Dependencies
-
-The library requires the following dependencies, which will be installed automatically:
-- `openai` (OpenAI API integration)
-- `shap` (SHAP value computation)
-- `numpy`, `pandas`, `scikit-learn` (Data manipulation and ML model support)
-- `rich`, `prompt-toolkit` (Interactive terminal output)
-- `python-dotenv` (Environment variable management)
-- `tiktoken` (Token handling for OpenAI API)
-
----
-
-## Development
-
-If you'd like to contribute or modify the library, clone the repository and install the dependencies using Poetry:
-```bash
-git clone https://github.com/your-repo/xai-gpt-shap-lima.git
-cd xai-gpt-shap-lima
-poetry install
-```
-
-Run tests to ensure everything works:
-```bash
-poetry run pytest
-```
-
----
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
-
----
-
-## Credits
-
-Developed by **Jan Sernec (JanHuntersi)**.
+|                   | `get_feature_importance()`             | Computes and summarizes feature importance across all instances in the dataset.                     | None                                                                                       | `DataFrame`: Feature importance summary.                                                  |

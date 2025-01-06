@@ -1,6 +1,6 @@
 """
 TODO's:
-- Naredi v knjiznjico, izpili prompte in izpise.
+- Odstrani pirates.
 - ...
 Extra TODO's:
 - Send initial prompt da vrne bare text, mogoce knjiznjica za delo z lepimi izpisi?
@@ -8,7 +8,6 @@ Extra TODO's:
 - Check if API key is correct
 - Poti ki jih nastavi uporabnik naj bodo neodvisne
 """
-
 import argparse
 import pandas as pd
 from xai_gpt_shap_lima.ChatGptClient import ChatGptClient
@@ -43,35 +42,24 @@ def main():
 
     # load selected instance on which SHAP analysis should be run
     selected_instance = pd.read_csv(args.instance_path)
-
     shap_results = calculator.calculate_shap_values_for_instance(selected_instance)
 
-
     gpt_client.custom_console_message("Calculating SHAP values..." )
-    
     gpt_client.custom_console_message("SHAP values calculated. Sending them gpt..")
     
     #try setting roles
     try:
-        role = gpt_client.set_gpt_expertise_layer(args.role if hasattr(args, "role") else None)
+        role = gpt_client.select_gpt_role(args.role if hasattr(args, "role") else None)
         gpt_client.custom_console_message(f"Using role: {role.capitalize()}", "green")
     except ValueError as e:
         gpt_client.custom_console_message(f"[red]Failed to set GPT expertise layer: {e}[/red]")
         exit(1)
 
     message = gpt_client.create_summary_and_message(shap_results, "XGBoost", "ali oseba zasluži več kot 50k na leto", "pozitivnega", role)
-   
-    gpt_client.send_initial_prompt(message, max_tokens = 500)
-
+ 
+    gpt_client.send_initial_prompt(message, max_response_tokens = 500)
     gpt_client.interactive_chat()
-
-    gpt_client.custom_console_message("KONEC..")
 
 
 if __name__ == "__main__":
     main()
-
-
-
-
-# BASE_MESSAGE = "You are a system designed to interpret SHAP values and help the user understand why a particular decision was made for a specific instance based on these SHAP values. Do not provide the SHAP values themselves unless asked, but rather explain the impact of these features on the prediction. "

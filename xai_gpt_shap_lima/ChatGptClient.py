@@ -8,111 +8,152 @@ import tiktoken
 from xai_gpt_shap_lima.roles import get_role_message
 
 class ChatGptClient:
-    def __init__(self, api_key, model="gpt-3.5-turbo-1106"):
+    """
+    A client for interacting with OpenAI's GPT models. Provides methods for sending prompts, handling chat history
+    managing system settings, it also provides an interactive chat with formatted output   
+    """
+
+    DEFAULT_MODEL = "gpt-3.5-turbo-1106"
+    DEFAULT_SYSTEM_MESSAGE = "You are an assistant designed to help the user understand SHAP results and explain them."
+    TEMPERATURE = 0.7 # Controls the randomness of GPT's responses
+    MAX_RESPONSE_TOKENS = 200 # Maximum tokens per response
+    MAX_HISTORY_TOKENS = 4096 # Maximum tokens in the chat history 
+
+    def __init__(self, api_key, model=DEFAULT_MODEL,temperature=TEMPERATURE, max_response_tokens=MAX_RESPONSE_TOKENS, max_history_tokens=MAX_HISTORY_TOKENS):
+        #TODO napisi docsstring
         self.client = OpenAI(api_key=api_key)
         self.model = model
         self.chat_history = []
-        self.system_message = "You are an assistant designed to help the user understand SHAP results and explain them."
+        self.system_message = self.DEFAULT_SYSTEM_MESSAGE
         self.console = Console()
         self.session = PromptSession()
-        self.temperature = 0.7
-        self.max_tokens = 200
-        self.history_tokens = 4096
+        self.temperature = temperature
+        self.max_response_tokens = max_response_tokens
+        self.max_history_tokens = max_history_tokens
 
-    def count_tokens(self, message):
+    def count_tokens(self, text):
         """
-        Count the number of tokens in the message
+        Count the number of tokens in a given string
+
+        Args:
+            text (str): The input text for which to count tokens.
+        
+        Returns: 
+            int: The number of tokens in the input text.
         """
         encoding = tiktoken.encoding_for_model(self.model)
-        return len(encoding.encode(message['content']))
+        return len(encoding.encode(text))
         
-    def clean_chat_history(self, history_tokens=0):
+    def clean_chat_history(self, max_history_tokens=0):
         """
-        Clean the chat history based on the maximum tokens
+        Clean the chat history based on the maximum allowed tokens inside history.
+
+        Args: 
+            max_history_tokens (int): Maximum allowed token count. Defaults to self.max_history_tokens
         """
 
-        if history_tokens == 0:
-            history_tokens = self.history_tokens
+        if max_history_tokens == 0:
+            max_history_tokens = self.max_history_tokens
 
-        total_tokens = sum([self.count_tokens(message) for message in self.chat_history])
+        total_tokens = sum([self.count_tokens(message['content']) for message in self.chat_history])
         
-        if len(self.chat_history) <4:
-            self.custom_console_message("Chat history is too short to clean", color="red")
-            return
-        
-        if total_tokens < history_tokens:
+        if total_tokens < max_history_tokens or len(self.chat_history) <4:
+            # No cleaning required
             return
         
         self.custom_console_message(f"Number of tokens: {total_tokens}. Cleaning the chat history based on the maximum tokens...", "red")
 
-
-        first_three_messages = self.chat_history[:3] #system, initial prompt, chat response
+        # Keep first few and last messages (critical context)
+        first_three_messages = self.chat_history[:3]
+        last_two_messages = self.chat_history[-2:]
         middle_messages = self.chat_history[3:-2]
-        last_messages = self.chat_history[-2:]
-
-        # Critical tokens = first_three_messages + last_messages
-        critical_tokens = sum([self.count_tokens(message) for message in first_three_messages])
-        critical_tokens += sum([self.count_tokens(message) for message in last_messages])
-
-
-        if critical_tokens > history_tokens:
+        
+        # Calculate token usage of critical messages
+        critical_tokens = sum(self.count_tokens(message['content']) for message in first_three_messages + last_two_messages) 
+        if critical_tokens > max_history_tokens:
+            # TODO offer an user option to delete or continue/end?
             self.custom_console_message(
-                "Critical tokens exceed the maximum number of allowed tokens!",
+                "Critical tokens exceed the maximum number of allowed tokens! You can exit chat or continue",
                 color="red"
             )
-            raise ValueError("Critical tokens exceed the maximum number of allowed tokens!")
-        
-        
-        while total_tokens > history_tokens and middle_messages:
-            middle_messages.pop(0)
-            total_tokens = (critical_tokens + sum([self.count_tokens(message) for message in middle_messages])) 
             
-        self.chat_history = first_three_messages + middle_messages + last_messages
-
+        # Trim middle messages to fit within token limit
+        while total_tokens > max_history_tokens and middle_messages:
+            middle_messages.pop(0)
+            total_tokens = (critical_tokens + sum([self.count_tokens(message['content']) for message in middle_messages])) 
+            
+        self.chat_history = first_three_messages + middle_messages + last_two_messages
 
 
     def set_temperature(self, temperature):
         """
-        Set the temperature for the model
+        Sets the temperature parameter for GPT, controlling response randomness.
+
+        Args: 
+            temparature (float): A value between 0 and 2.
+
+        Raises:
+            ValueError: If temperature is not within 0-2
         """
+        if not(0 <= temperature <= 2):
+            raise ValueError("Temperatire must be between 0 and 2.")
         self.temperature = temperature
 
-    def set_tokens(self, max_tokens):
+    def set_max_response_tokens(self, max_response_tokens):
         """
-        Set the maximum tokens for the model
+        Sets the maximum number of tokens for GPT model repsonse
+
+        Args:
+            max_response_tokens (int): The maximum number of tokens.
+
+        Raises:
+            ValueError: If max_tokens is not a positive integer.
         """
-        self.max_tokens = max_tokens
+        if not isinstance(max_response_tokens, int) or max_response_tokens <= 0:
+            raise ValueError("max_response_tokens must be a positive integer.")
+        self.max_response_tokens = max_response_tokens
 
     def get_user_input(self):
         """
-        GET user input
+        Prompts the user for input via the terminal.
+
+        Returns:
+            str: The user's input.
         """
         try:
-            user_input = self.session.prompt("(You): ")  # Interaktivni vnos
-            if user_input.lower() in ["exit", "quit"]:
-                self.console.print("[bold red]Exiting chat. Goodbye![/bold red]")
-                exit()
-            return user_input.strip()
-        
+            return self.session.prompt("(You): ").strip()
         except (KeyboardInterrupt, EOFError):
             self.console.print("\n[bold red]Exiting chat. Goodbye![/bold red]")
-            exit()
+            return None
 
     def set_system_message(self, message):
         """
-        Sets the system message to set the tone of the conversation
+        Sets the system message that configures GPT's behaviur.
+
+        Args:
+            message (str): The system-level message
+        
         """
         self.system_message = {"role": "system", "content": message}
         self.chat_history.insert(0, self.system_message)
 
-    def send_initial_prompt(self, prompt, print_response=True, max_tokens=0, temperature=0):
+    def send_initial_prompt(self, prompt, print_response=True, max_response_tokens=0, temperature=0):
         """
-        Sends the initial prompt to the model
+        Sends the initial prompt to GPT and retrieves the assistant's response.
+
+        Args:
+            prompt (str): The initial prompt to send.
+            print_response (bool): Whether to print the response to the console. Defaults to True.
+            max_response_tokens (int): Maximum tokens for the response. Defaults to `self.max_response_tokens`.
+            temperature (float): Temperature for the response. Defaults to `self.temperature`.
+
+        Returns:
+            str: The assistant's response.
         """
 
         # If max_tokens is not set, use the default value
-        if max_tokens == 0:
-            max_tokens = self.max_tokens
+        if max_response_tokens == 0:
+            max_response_tokens = self.max_response_tokens
 
         # If temperature is not set, use the default value
         if temperature == 0:
@@ -125,7 +166,7 @@ class ChatGptClient:
             model=self.model,
             messages=self.chat_history,
             temperature=temperature,
-            max_tokens=max_tokens,
+            max_tokens=max_response_tokens,
         )
 
         answer = response.choices[0].message.content
@@ -141,7 +182,11 @@ class ChatGptClient:
 
     def custom_console_message(self, message, color="white"):
         """
-        Send a custom message to the console
+        Send a custom message to the console.
+
+        Args:
+            message (str): The message to be displayed.
+            color (str): Chat's color. Default is white.
         """
         self.console.print(f"[bold {color}]{message}[/bold {color}]")
 
@@ -152,16 +197,25 @@ class ChatGptClient:
         self.console.print("[bold cyan]You can now interact with ChatGPT. Type your questions below![/bold cyan]")
         while True:
             try:
-                #Get user input
+                
                 user_message = self.get_user_input()
+
+                # Handle exit keywords
+                if user_message is None or user_message.lower() in ["exit","quit"]:
+                    self.console.print("[bold red]Ending chat session. Goodbye![/bold red]")
+                    break
+                
+                # Convert to string if its not
                 if not isinstance(user_message, str):
                     user_message = str(user_message)
+
+                # Append user message to chat history
                 self.chat_history.append({"role": "user", "content": user_message})
 
-                #Send input and stream the response
+                # Send input and stream the response
                 self.stream_response()
 
-                #Clean the chat history
+                # Clean the chat history
                 self.clean_chat_history()
 
             except (KeyboardInterrupt, EOFError):
@@ -203,7 +257,19 @@ class ChatGptClient:
         return text
     
     def create_summary_and_message(self,shap_df, model, short_summary, choice_class, role):
+        """
+        Generates a GPT prompt based on SHAP results, model details, and role-specific requirements.
 
+        Args:
+            shap_df (DataFrame): A DataFrame of SHAP values.
+            model (str): The name of the model.
+            short_summary (str): A summary of the prediction.
+            choice_class (str): The target class.
+            role (str): The role for the explanation (e.g., "beginner").
+
+        Returns:
+            str: The generated GPT prompt.
+        """
         summary = "\n".join(
             [
                 f"- {row['Feature']}: SHAP={row['SHAP Value']:.4f}, Value={row['Feature Value']}"
@@ -284,15 +350,20 @@ class ChatGptClient:
         
         return message
 
-    def choose_gpt_expertise_layer_interactive(self):
+    def choose_system_role_interactive(self):
+        """
+        Allows the user to interactively select the GPT's role/instructions .
 
+        Returns:
+            str: The selected role.
+        """
         roles_config = {
                 "1": {"role": "beginner", "temperature": 1, "tokens": 300, "message": "Explain it to me like I'm a beginner"},
                 "2": {"role": "student", "temperature": 0.8, "tokens": 200, "message": "Explain it to me like I'm a student"},
                 "3": {"role": "analyst", "temperature": 0.8, "tokens": 150, "message": "Explain it to me like I'm an analyst"},
                 "4": {"role": "researcher", "temperature": 0.8, "tokens": 150, "message": "Explain it to me like I'm a researcher"},
                 "5": {"role": "executive_summary", "temperature": 0.8, "tokens": 150, "message": "Explain it to me like an executive summary"},
-                "0": {"role": "pirate", "temperature": 0.8, "tokens": 200, "message": "Explain it to me like I'm a pirate"},
+                "0": {"role": "pirate", "temperature": 0.8, "tokens": 200, "message": "Secret choice, Explain it to me like I'm a pirate!"},
             }
 
         while True:
@@ -313,10 +384,10 @@ class ChatGptClient:
                 config = roles_config[choice]
                 role = config["role"]
                 self.set_temperature(config["temperature"])
-                self.set_tokens(config["tokens"])
+                self.set_max_response_tokens(config["tokens"])
                 self.custom_console_message(f"You chose the expertise level: {config['message']}", "yellow")
                 
-                # Set system msg
+                # Set system message 
                 try:
                     system_message = get_role_message(role)
                     self.set_system_message(system_message)
@@ -329,16 +400,16 @@ class ChatGptClient:
             else:
                 self.custom_console_message("Invalid choice. Please try again.", "red")
 
-    def set_gpt_expertise_layer(self, role=None):
+    def select_gpt_role(self, role=None):
         """
-        Nastavi sistemsko sporočilo GPT na podlagi izbrane vloge.
+        Sets the systems message based on provided role or via prompt.
 
         Args:
-            role (str): Izbrana vloga (npr. "beginner", "student", "analyst").
-                        Če ni podana, se interaktivno vpraša uporabnika.
+            role (str): Choosen role (npr. "beginner", "student", "analyst").
+                        If not set, it prompts the user interactively.
 
         Returns:
-            str: Izbrano vlogo (npr. "beginner", "student").
+            str: Selected role (ex. "beginner", "student").
         """
         if role:
             # if role available we set it
@@ -352,7 +423,7 @@ class ChatGptClient:
                 raise e
         else:
             # if role not set use interacitve way
-            return self.choose_gpt_expertise_layer_interactive()
+            return self.choose_system_role_interactive()
         
 
 
