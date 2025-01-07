@@ -25,8 +25,8 @@ This project is currently available as a Poetry project and not a published pack
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/JanHuntersi/xai-gpt-shap-lima.git
-   cd xai-gpt-shap-lima
+   git clone https://github.com/JanHuntersi/xai-gpt-shap.git
+   cd xai-gpt-shap
    ```
 
 2. Install dependencies using Poetry:
@@ -39,8 +39,6 @@ This project is currently available as a Poetry project and not a published pack
    poetry install --with dev
    ```
 
-3. Run the CLI or use the library programmatically as described below.
-
 ---
 
 ### Option 2: Use Requirements File (pip)
@@ -48,8 +46,8 @@ If you prefer, you can use a `requirements.txt` file to install the dependencies
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/JanHuntersi/xai-gpt-shap-lima.git
-   cd xai-gpt-shap-lima
+   git clone https://github.com/JanHuntersi/xai-gpt-shap.git
+   cd xai-gpt-shap
    ```
 
 2. Install dependencies using `pip`:
@@ -62,31 +60,7 @@ If you prefer, you can use a `requirements.txt` file to install the dependencies
 ---
 
 ## **Usage**
-
-### **1. Command-Line Interface (CLI)**
-
-After installing the package, you can run it directly from the terminal using the `xai-gpt-shap` command.
-
-#### **Example:**
-```bash
-xai-gpt-shap --api_key YOUR_API_KEY \
-         --model_path model.pkl \
-         --data_path data.csv \
-         --instance_path instance.csv \
-         --target_class 1 \
-         --role beginner
-```
-
-#### **Options:**
-- `--api_key`: Your OpenAI API key.
-- `--model_path`: Path to the saved machine learning model (e.g., `model.pkl` or `model.onnx`).
-- `--data_path`: Path to the dataset used for SHAP analysis (e.g., `data.csv`).
-- `--instance_path`: Path to a CSV file containing the instance to analyze (e.g., `instance.csv`).
-- `--target_class`: The target class for SHAP analysis (e.g., `1` for binary classification).
-- `--role`: Role for the GPT explanation (`beginner`, `student`, `analyst`, `researcher`, `executive_summary`).
-- `--interactive`: Enable interactive chat mode after the initial explanation.
-
-#### **Example with Test Data:**
+### **1. Example with Test Data:**
 This library includes a `data` folder with prepared test datasets. To run an example:
 1. Install the library with additional dependencies (for **XGBoost** support):
    ```bash
@@ -110,9 +84,34 @@ This library includes a `data` folder with prepared test datasets. To run an exa
        --api_key YOUR_API_KEY
    ```
 
+### **Available Options:**
+- `--api_key`: Your OpenAI API key.
+- `--model_path`: Path to the saved machine learning model (e.g., `model.pkl` or `model.onnx`).
+- `--data_path`: Path to the dataset used for SHAP analysis (e.g., `data.csv`).
+- `--instance_path`: Path to a CSV file containing the instance to analyze (e.g., `instance.csv`).
+- `--target_class`: The target class for SHAP analysis (e.g., `1` for binary classification).
+- `--role`: Role for the GPT explanation (`beginner`, `student`, `analyst`, `researcher`, `executive_summary`).
+- `--interactive`: Enable interactive chat mode after the initial explanation.
+
 ---
 
-### **2. Programmatic Usage**
+### **2. Running it as a package**
+
+After installing the package, you can run it directly from the terminal using the `xai-gpt-shap` command.
+
+#### **Example:**
+```bash
+xai-gpt-shap  --model_path ../data/input/shap_model.pkl \
+        --data_path ../data/input/x_data.csv \
+        --instance_path ../data/input/selected_instance.csv \
+        --target_class 1 \
+        --output_csv ../data/output/output_csv.csv \
+        --role beginner \
+        --api_key YOUR_API_KEY
+```
+
+
+### **3. Programmatic Usage**
 
 You can also use the library programmatically in Python scripts.
 
