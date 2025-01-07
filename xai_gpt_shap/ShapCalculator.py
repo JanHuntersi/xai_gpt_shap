@@ -95,13 +95,21 @@ class ShapCalculator:
         Calculates SHAP values for a single instance.
 
         Args:
-            instance (DataFrame): A single instance for which to calculate SHAP values.
+            instance (DataFrame): A single instance (row) in the form of a pandas DataFrame. 
+                                Ensure the instance matches the feature structure of the model's training data.
 
         Returns:
-            DataFrame: A DataFrame containing SHAP values, feature names, and instance feature values.
+            Tuple:
+                - DataFrame: A DataFrame containing SHAP values, feature names, and instance feature values.
+                - numpy.ndarray: A 1D array containing SHAP values for the specified target class. 
+                                This is directly compatible with SHAP visualization methods such as `shap.plots.waterfall`.
 
         Raises:
-            ValueError: If the model, data, or target class is not set.
+            ValueError: If any of the following conditions are not met:
+                        - The model is loaded.
+                        - The data (training set) is loaded.
+                        - The target class is specified.
+                        - The model type is supported (e.g., "onnx" or "pickle").
         """
         if self.model is None:
             raise ValueError("Model is not loaded")
@@ -129,7 +137,8 @@ class ShapCalculator:
             "SHAP Value": shap_values_for_class.values[0],
             "Feature Value": instance.values[0]
         })
-        return self.shap_results
+
+        return self.shap_results, shap_values_for_class 
 
     def save_shap_values_to_csv(self, output_path):
         """

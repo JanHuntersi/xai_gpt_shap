@@ -91,6 +91,8 @@ This library includes a `data` folder with prepared test datasets. To run an exa
 - `--target_class`: The target class for SHAP analysis (e.g., `1` for binary classification).
 - `--role`: Role for the GPT explanation (`beginner`, `student`, `analyst`, `researcher`, `executive_summary`).
 - `--interactive`: Enable interactive chat mode after the initial explanation.
+- `--show_waterfall`: If flag shown it display's SHAP results in a graph in a seperate window.
+
 
 ---
 
