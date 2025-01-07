@@ -86,31 +86,6 @@ print(response)
 gpt_client.interactive_chat()
 ```
 
----
-
-## **File Structure**
-
-```
-xai_gpt_shap/
-│
-├── xai_gpt_shap/        # Main package directory
-│   ├── __init__.py          # Package initialization
-│   ├── ChatGptClient.py     # Handles GPT interactions
-│   ├── ShapCalculator.py    # Performs SHAP analysis
-│   ├── roles.py             # Defines role-specific messages
-│
-├── tests/                   # Unit tests
-│   ├── test_chat_gpt.py
-│   ├── test_shap_calculator.py
-│
-├── README.md                # Documentation
-├── pyproject.toml           # Poetry configuration
-├── requirements.txt         # Alternative dependency file
-└── LICENSE                  # License information
-```
-
----
-
 ## **Supported Model Formats**
 
 This library supports the following model formats:

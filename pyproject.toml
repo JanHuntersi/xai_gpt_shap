@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "xai-gpt-shap"
-version = "1.0.1"
+version = "1.0.2"
 description = "A library for explainable AI with SHAP and GPT-based explanations."
 authors = ["(JanHuntersi)"]
 repository = "https://github.com/JanHuntersi/xai_gpt_shap"
