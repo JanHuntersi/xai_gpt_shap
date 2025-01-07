@@ -71,8 +71,7 @@ This library includes a `data` folder with prepared test datasets. To run an exa
    cd xai_gpt_shap
    ```
 
-
-2. Run the project with the provided test data:
+2. Run the project with the path to test folder data:
    ```bash
    poetry run python main.py \
        --model_path ../data/input/shap_model.pkl \
@@ -101,12 +100,12 @@ After installing the package, you can run it directly from the terminal using th
 
 #### **Example:**
 ```bash
-xai-gpt-shap  --model_path ../data/input/shap_model.pkl \
-        --data_path ../data/input/x_data.csv \
-        --instance_path ../data/input/selected_instance.csv \
-        --target_class 1 \
-        --output_csv ../data/output/output_csv.csv \
-        --role beginner \
+xai-gpt-shap  --model_path YOUR_MODEL_PATH \
+        --data_path YOUR_DATA_PATH \
+        --instance_path YOUR_INSTANCE_PATH \
+        --target_class YOUR_TARGET_CLASS \
+        --output_csv YOUR_OUTPUT_FILE_PATH \
+        --role YOUR_DESIRED_ROLES \
         --api_key YOUR_API_KEY
 ```
 
@@ -172,6 +171,40 @@ xai_gpt_shap/
 ```
 
 ---
+
+## Roles
+
+This library supports different **roles** to tailor explanations of SHAP values to the user's needs. Each role defines a unique style of explanation. Below are the available roles and their descriptions:
+
+| **Role**            | **Description**                                                                                                                                       |
+|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Beginner**        | Explains SHAP values in very simple terms, using examples and avoiding technical jargon. Suitable for users new to machine learning or SHAP concepts. |
+| **Student**         | Provides a slightly more detailed explanation with basic technical terms and examples to help users learn.                                            |
+| **Analyst**         | Focuses on structured insights and presents the results in a business-friendly way, highlighting key features and their contributions.                |
+| **Researcher**      | Offers detailed technical explanations, including nuances in feature importance, potential biases, and further areas for exploration.                 |
+| **Executive Summary** | Provides a concise, high-level summary of SHAP values, focusing only on the key features and their impact without going into technical details.       |
+| **Pirate**          | A playful mode where the assistant explains SHAP values in the style of Captain Jack Sparrow, blending charisma and humor into the explanation.        |
+
+### How to Use Roles
+
+#### Using CLI
+You can specify a role by using the `--role` option in the CLI.
+
+```bash
+xai-gpt-shap --role beginner
+```
+
+#### Using programaticaly
+You can also specify a role programmaticaly by using the get_role_message function.
+
+```python
+from xai_gpt_shap import get_role_message
+
+# Example: Get role message for "pirate"
+role_message = get_role_message("pirate")
+print(role_message)
+```
+
 
 ## **Supported Model Formats**
 

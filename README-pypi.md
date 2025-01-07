@@ -86,6 +86,26 @@ print(response)
 gpt_client.interactive_chat()
 ```
 
+### How to Use Roles
+
+#### Using CLI
+You can specify a role by using the `--role` option in the CLI.
+
+```bash
+xai-gpt-shap --role beginner
+```
+
+#### Using programaticaly
+You can also specify a role programmaticaly by using the get_role_message function.
+
+```python
+from xai_gpt_shap import get_role_message
+
+# Example: Get role message for "pirate"
+role_message = get_role_message("pirate")
+print(role_message)
+```
+
 ## **Supported Model Formats**
 
 This library supports the following model formats:
