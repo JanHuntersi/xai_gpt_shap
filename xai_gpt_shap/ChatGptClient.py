@@ -5,7 +5,15 @@ from rich.live import Live
 from rich.markdown import Markdown
 from prompt_toolkit import PromptSession
 import tiktoken
-from xai_gpt_shap_lima.roles import get_role_message
+from xai_gpt_shap.roles import get_role_message
+
+
+"""
+TODO's:
+- Export chat history
+- Import chat history
+
+"""
 
 class ChatGptClient:
     """

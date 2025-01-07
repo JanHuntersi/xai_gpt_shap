@@ -1,6 +1,6 @@
-# **xai-gpt-shap-lima**
+# **xai-gpt-shap**
 
-**xai-gpt-shap-lima** is a Python library that combines **SHAP** (SHapley Additive exPlanations) value analysis with **OpenAI GPT**-based explanations to make machine learning model predictions more interpretable.
+**xai-gpt-shap** is a Python library that combines **SHAP** (SHapley Additive exPlanations) value analysis with **OpenAI GPT**-based explanations to make machine learning model predictions more interpretable.
 
 This library allows you to:
 - Perform SHAP analysis on machine learning models.
@@ -65,11 +65,11 @@ If you prefer, you can use a `requirements.txt` file to install the dependencies
 
 ### **1. Command-Line Interface (CLI)**
 
-After installing the package, you can run it directly from the terminal using the `xai-shap` command.
+After installing the package, you can run it directly from the terminal using the `xai-gpt-shap` command.
 
 #### **Example:**
 ```bash
-xai-shap --api_key YOUR_API_KEY \
+xai-gpt-shap --api_key YOUR_API_KEY \
          --model_path model.pkl \
          --data_path data.csv \
          --instance_path instance.csv \
@@ -92,15 +92,20 @@ This library includes a `data` folder with prepared test datasets. To run an exa
    ```bash
    poetry install --with dev
    ```
+2. Move inside to xai_gpt_shap folder
+   ```bash
+   cd xai_gpt_shap
+   ```
+
 
 2. Run the project with the provided test data:
    ```bash
    poetry run python main.py \
-       --model_path ./data/input/shap_model.pkl \
-       --data_path ./data/input/x_data.csv \
-       --instance_path ./data/input/selected_instance.csv \
+       --model_path ../data/input/shap_model.pkl \
+       --data_path ../data/input/x_data.csv \
+       --instance_path ../data/input/selected_instance.csv \
        --target_class 1 \
-       --output_csv ./data/output/output_csv.csv \
+       --output_csv ../data/output/output_csv.csv \
        --role beginner \
        --api_key YOUR_API_KEY
    ```
@@ -113,7 +118,7 @@ You can also use the library programmatically in Python scripts.
 
 #### **Example Code:**
 ```python
-from xai_gpt_shap_lima import ChatGptClient, ShapCalculator
+from xai_gpt_shap import ChatGptClient, ShapCalculator
 
 # Initialize the SHAP calculator
 calculator = ShapCalculator(model_path="model.pkl", data_path="data.csv", target_class=1)
@@ -149,9 +154,9 @@ gpt_client.interactive_chat()
 ## **File Structure**
 
 ```
-xai_gpt_shap_lima/
+xai_gpt_shap/
 │
-├── xai_gpt_shap_lima/        # Main package directory
+├── xai_gpt_shap/        # Main package directory
 │   ├── __init__.py          # Package initialization
 │   ├── ChatGptClient.py     # Handles GPT interactions
 │   ├── ShapCalculator.py    # Performs SHAP analysis

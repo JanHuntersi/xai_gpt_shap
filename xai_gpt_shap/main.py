@@ -10,8 +10,8 @@ Extra TODO's:
 """
 import argparse
 import pandas as pd
-from xai_gpt_shap_lima.ChatGptClient import ChatGptClient
-from xai_gpt_shap_lima.ShapCalculator import ShapCalculator
+from xai_gpt_shap.ChatGptClient import ChatGptClient
+from xai_gpt_shap.ShapCalculator import ShapCalculator
 
 
 
