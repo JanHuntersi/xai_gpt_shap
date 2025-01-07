@@ -32,7 +32,7 @@ jobs:
       
       - name: Build release distributions
         run: |
-          poetry install --no-dev
+          poetry install
           poetry build
           
       - name: Upload distributions
