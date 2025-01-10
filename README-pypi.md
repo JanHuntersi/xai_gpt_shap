@@ -57,34 +57,44 @@ You can also use the library programmatically in Python scripts.
 #### **Example Code:**
 ```python
 from xai_gpt_shap import ChatGptClient, ShapCalculator
-
+import shap
 # Initialize the SHAP calculator
-calculator = ShapCalculator(model_path="model.pkl", data_path="data.csv", target_class=1)
+calculator = ShapCalculator(model_path="./model.pkl", data_path="./data.csv", target_class=1)
 calculator.load_model()
 calculator.load_data()
 
 # Select an instance for SHAP analysis
-selected_instance = calculator.data.iloc[[0]]  # First instance
-shap_results = calculator.calculate_shap_values_for_instance(selected_instance)
+selected_instance = calculator.data.iloc[[0]] 
+
+# we receive resulsts from shap analysis as an DataFrame and 
+# numpy.ndarray: A 1D array containing SHAP values for the specified target class. compatible for plotting results
+shap_results, shap_results_for_waterfall = calculator.calculate_shap_values_for_instance(selected_instance)
+
+# we can plot the results
+shap.plots.waterfall(shap_results_for_waterfall[0], max_display=14)   
 
 # Initialize ChatGPT client
 gpt_client = ChatGptClient(api_key="YOUR_API_KEY")
+
 
 # Generate a role-specific explanation
 message = gpt_client.create_summary_and_message(
     shap_df=shap_results,
     model="XGBoost",
-    prediction_summary="Predicted income > 50k",
-    target_class=1,
+    short_summary="Predicted income > 50k",
+    choice_class=1,
     role="beginner",
 )
-response = gpt_client.send_initial_prompt(message)
 
-# Print the explanation
+# For testing purposes seting print_response to false, default is true
+response = gpt_client.send_initial_prompt(message,print_response=False)
+
+# manually printing response
 print(response)
 
 # Start an interactive chat for follow-up questions
 gpt_client.interactive_chat()
+
 ```
 
 ### How to Use Roles
