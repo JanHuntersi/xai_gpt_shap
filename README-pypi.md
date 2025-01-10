@@ -30,12 +30,12 @@ After installing the package, you can run it directly from the terminal using th
 
 #### **Example:**
 ```bash
-xai-gpt-shap  --model_path ../data/input/shap_model.pkl \
-        --data_path ../data/input/x_data.csv \
-        --instance_path ../data/input/selected_instance.csv \
-        --target_class 1 \
-        --output_csv ../data/output/output_csv.csv \
-        --role beginner \
+xai-gpt-shap  --model_path YOUR_MODEL_PATH \
+        --data_path YOUR_DATA_PATH \
+        --instance_path YOUR_INSTANCE_PATH \
+        --target_class YOUR_TARGET_CLASS \
+        --output_csv YOUR_OUTPUT_FILE_PATH \
+        --role YOUR_DESIRED_ROLES \
         --api_key YOUR_API_KEY
 ```
 

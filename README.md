@@ -66,17 +66,13 @@ This library includes a `data` folder with prepared test datasets. To run an exa
    ```bash
    poetry install --with dev
    ```
-2. Move inside to xai_gpt_shap folder
-   ```bash
-   cd xai_gpt_shap
-   ```
 
 2. Run the project with the path to test folder data:
    ```bash
    poetry run python main.py \
-       --model_path ../data/input/shap_model.pkl \
-       --data_path ../data/input/x_data.csv \
-       --instance_path ../data/input/selected_instance.csv \
+       --model_path ./data/input/shap_model.pkl \
+       --data_path ./data/input/x_data.csv \
+       --instance_path ./data/input/selected_instance.csv \
        --target_class 1 \
        --output_csv ../data/output/output_csv.csv \
        --role beginner \

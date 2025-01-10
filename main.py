@@ -1,7 +1,4 @@
 """
-TODO's:
-- Odstrani pirates.
-- ...
 Extra TODO's:
 - Send initial prompt da vrne bare text, mogoce knjiznjica za delo z lepimi izpisi?
 - Uporabnik ročno vnese vrednosti instance
